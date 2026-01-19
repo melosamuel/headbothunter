@@ -1,0 +1,27 @@
+{% if jobs %}
+    <article>
+        <header>{{ jobs|length }} opportunities found.</header>
+        <table>
+            <thead>
+                <tr>
+                    <th>Role</th>
+                    <th>Company</th>
+                    <th>Link</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for job in jobs %}
+                <tr>
+                    <td>{{ job.title }}</td>
+                    <td>{{ job.company }}</td>
+                    <td><a href="{{ job.link }}" role="button" class="outline">Aplicar</a></td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </article>
+{% else %}
+    <article>
+        Not a single opportunity found. Sorry!
+    </article>
+{% endif %}

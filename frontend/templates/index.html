@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Job Scraper Dashboard</title>
+    <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+    
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@1/css/pico.min.css">
+    
+    <style>
+        .htmx-indicator{ display:none; }
+        .htmx-request .htmx-indicator{ display:inline; }
+        .htmx-request.htmx-indicator{ display:inline; }
+    </style>
+</head>
+<body>
+    <main class="container">
+        <h1>🔍 Job Hunter</h1>
+        
+        <form hx-post="/search" hx-target="#results" hx-indicator="#loading">
+            <div class="grid">
+                <input type="text" name="keyword" placeholder="Ex: Python, Java, React" required>
+                <button type="submit">Find Opportunities</button>
+            </div>
+        </form>
+
+        <div id="loading" class="htmx-indicator">
+            <button aria-busy="true">HBH is working...</button>
+        </div>
+
+        <div id="results">
+            <p>The results will appear here...</p>
+        </div>
+    </main>
+</body>
+</html>
