@@ -3,7 +3,7 @@ import os
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
-DATA_FILE = BASE_DIR + "/GUI/core/data.json"
+DATA_FILE = BASE_DIR + "/data.json"
 
 DEFAULT_DATA = {
     "companies": [],

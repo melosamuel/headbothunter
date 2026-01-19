@@ -46,7 +46,26 @@ class FileManager():
             return DEFAULT_DATA
 
         try:
-            data = self.open(self.file_path)
+            data = self.open()
             return data
         except json.JSONDecodeError:
             return DEFAULT_DATA
+
+    def get_link(self, company_name: str) -> str | None:
+        """
+        Retrieve the job URL for a given company name.
+
+        Args:
+            company_name (str): The name of the company.
+
+        Returns:
+            str | None: The job URL if found, otherwise None.
+        """
+
+        data = self.load()
+        companies = data.get("companies", [])
+
+        for company in companies:
+            if company.get("name") == company_name:
+                return company.get("url")
+        return None
