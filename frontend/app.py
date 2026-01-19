@@ -9,6 +9,7 @@ def mock_scrape_jobs(keyword):
         {"title": f"Dev {keyword} Jr", "company": "Tech A", "link": "#"},
         {"title": f"Dev {keyword} Mid-Level", "company": "Infinix Tech", "link": "#"},
         {"title": f"QA {keyword}", "company": "Global Corp", "link": "#"},
+        {"title": f"Dev {keyword} Sr", "company": "Innovate LLC", "link": "#"},
     ]
 
 @app.route('/')
