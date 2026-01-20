@@ -4,18 +4,8 @@ from bs4 import BeautifulSoup
 from playwright.sync_api import sync_playwright
 
 class StoneJobs:
-    TEAM = {
-        "tech": "Tecnologia",
-        "commercial": "Comercial",
-        "others": "Outras+vagas",
-        "customer_relationship": "Relacionamento+com+o+cliente",
-        "logistic": "Logística"
-    }
-
-    def start(self, choices: list):
-        selected_teams = [self.TEAM[c] for c in choices if c in self.TEAM]
-        teams_param = "%2C".join(selected_teams)
-        url = f"https://jornada.stone.com.br/vagas-abertas?times={teams_param}#top"
+    def start(self):
+        url = f"https://jornada.stone.com.br/vagas-abertas?times=Tecnologia#top"
 
         with sync_playwright() as p:
             browser = p.chromium.launch(headless=True)

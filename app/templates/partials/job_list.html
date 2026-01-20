@@ -1,7 +1,27 @@
 {% if jobs %}
-    <div style="display: flex; justify-content: space-between; margin-bottom: 1rem; border-bottom: 1px solid #334155; padding-bottom: 10px;">
-        <span style="color: #94a3b8;">Status: <strong style="color: #10b981;">Complete</strong></span>
-        <span style="color: #fff;">{{ jobs|length }} jobs extracted</span>
+    <div style="background: #1e293b; padding: 1rem; border-radius: 8px; margin-bottom: 1.5rem; border: 1px solid #334155; display: flex; justify-content: space-between; align-items: center; gap: 0 6rem">
+        <div>
+            {% if from_cache %}
+                <span style="color: #f59e0b; font-weight: bold;">⚡ Cached Results</span>
+            {% else %}
+                <span style="color: #10b981; font-weight: bold;">🐢 Fresh Results</span>
+            {% endif %}
+            
+            <div style="font-size: 0.8rem; color: #94a3b8; margin-top: 4px;">
+                Last verification: {{ last_updated }} </br>
+                ({{ jobs|length }} positions)
+            </div>
+        </div>
+
+        <button 
+            hx-post="/run-scraper?force=true" 
+            hx-target="#results-area"
+            hx-indicator="#loading"
+            hx-include="[name='teams']" 
+            style="background: transparent; border: 1px solid #475569; color: #fff; padding: 6px 12px; font-size: 0.8rem; cursor: pointer; border-radius: 4px; width: 40%; margin: 0 auto;"
+        >
+            ↻ Force Refresh
+        </button>
     </div>
 
     <div class="quest-board" style="display: grid; gap: 1rem; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));">
@@ -21,7 +41,7 @@
                     
                     <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 4px;">
                         {% if job.remote %}
-                            <span style="color: #10b981;">●</span> Remote / Brazil
+                            <span style="color: #10b981;">●</span> Remote   
                         {% else %}
                             <span style="color: #f59e0b;">●</span> On-site / Office
                         {% endif %}
@@ -46,6 +66,6 @@
     </div>
 {% else %}
     <div style="text-align: center; padding: 2rem; color: #64748b;">
-        No jobs found for the selected teams.
+        No jobs found.
     </div>
 {% endif %}
