@@ -24,13 +24,14 @@ class StoneJobs:
 
             try:
                 page.wait_for_selector('a[href*="/oportunidades/"]', timeout=15000)
-            except Exception as e:
+            except Exception:
                 browser.close()
-                raise e
+                return {}
 
             jobs = {}
 
-            while True:
+            page_count = 0
+            while page_count < 5:
                 page.wait_for_selector('a[href*="/oportunidades/"]', timeout=10000)
                 soup = BeautifulSoup(page.content(), 'html.parser')
 
@@ -44,6 +45,7 @@ class StoneJobs:
 
                     next_button.click()
                     page.wait_for_timeout(1000)
+                    page_count += 1
                 except Exception:
                     break
 
@@ -52,7 +54,6 @@ class StoneJobs:
 
     def scrape_jobs(self, soup):
         jobs = {}
-
         cards = soup.find_all('a', href=lambda href: href and '/oportunidades/' in href)
 
         for card in cards:
@@ -71,7 +72,8 @@ class StoneJobs:
                 "title": title,
                 "remote": remote,
                 "sector": sector,
-                "posted_at": posted_at
+                "posted_at": posted_at,
+                "link": link
             }
 
         return jobs

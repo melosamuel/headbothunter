@@ -1,26 +1,29 @@
+import sys
+import os
+
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
 from flask import Flask, render_template, request
-import time
+from backend.stone import StoneJobs
 
 app = Flask(__name__)
-
-def mock_scrape_jobs(keyword):
-    time.sleep(2)
-    return [
-        {"title": f"Dev {keyword} Jr", "company": "Tech A", "link": "#"},
-        {"title": f"Dev {keyword} Mid-Level", "company": "Infinix Tech", "link": "#"},
-        {"title": f"QA {keyword}", "company": "Global Corp", "link": "#"},
-        {"title": f"Dev {keyword} Sr", "company": "Innovate LLC", "link": "#"},
-    ]
 
 @app.route('/')
 def index():
     return render_template('index.html')
 
-@app.route('/search', methods=['POST'])
-def search():
-    keyword = request.form.get('keyword')
-    jobs = mock_scrape_jobs(keyword)
-    return render_template('partials/job_list.html', jobs=jobs)
+@app.route('/run-scraper', methods=['POST'])
+def run_scraper():
+    selected_teams = request.form.getlist('teams')
+
+    if not selected_teams:
+        return "<div class='p-4 text-red-500'>Please select at least one team.</div>"
+
+    scraper = StoneJobs()
+    jobs_dict = scraper.start(selected_teams)
+    jobs_list = list(jobs_dict.values())
+
+    return render_template('partials/job_list.html', jobs=jobs_list)
 
 if __name__ == '__main__':
     app.run(debug=True)

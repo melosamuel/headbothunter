@@ -1,170 +1,51 @@
-<style>
-    /* --- Grid Layout (Unchanged) --- */
-    .quest-board {
-        display: grid;
-        gap: 1.5rem;
-        grid-template-columns: 1fr;
-        padding: 1.5rem 0;
-    }
-    @media (min-width: 600px) { .quest-board { grid-template-columns: repeat(2, 1fr); } }
-    @media (min-width: 900px) { .quest-board { grid-template-columns: repeat(3, 1fr); } }
-    @media (min-width: 1200px) { .quest-board { grid-template-columns: repeat(4, 1fr); } }
-
-    /* --- Clean Color Palette --- */
-    .rank-common    { --accent: #71717a; --bg-soft: rgba(113, 113, 122, 0.1); } /* Zinc */
-    .rank-rare      { --accent: #3b82f6; --bg-soft: rgba(59, 130, 246, 0.1); }  /* Blue */
-    .rank-epic      { --accent: #a855f7; --bg-soft: rgba(168, 85, 247, 0.1); }  /* Purple */
-    .rank-legendary { --accent: #eab308; --bg-soft: rgba(234, 179, 8, 0.1); }   /* Gold */
-
-    /* --- The Modern Card --- */
-    .quest-card {
-        background: #18181b; /* Zinc-900 (Dark but soft) */
-        border: 1px solid #27272a;
-        border-radius: 12px; /* Smoother rounding */
-        padding: 1.5rem;
-        display: flex;
-        flex-direction: column;
-        justify-content: space-between;
-        transition: transform 0.2s ease, border-color 0.2s ease;
-        position: relative;
-        overflow: hidden;
-    }
-
-    /* Subtle Hover State */
-    .quest-card:hover {
-        transform: translateY(-2px);
-        border-color: #3f3f46;
-        box-shadow: 0 4px 20px rgba(0,0,0,0.3);
-    }
-
-    /* Left Accent Line (The "Clean" way to show status) */
-    .quest-card::before {
-        content: "";
-        position: absolute;
-        left: 0; top: 0; bottom: 0;
-        width: 4px;
-        background-color: var(--accent);
-    }
-
-    /* --- Content Styling --- */
-    .card-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: flex-start;
-        margin-bottom: 1rem;
-    }
-
-    .quest-title {
-        font-size: 1.1rem;
-        font-weight: 600;
-        color: #f4f4f5;
-        line-height: 1.4;
-        margin: 0;
-    }
-
-    /* The Badge (Pill shape) */
-    .rank-badge {
-        font-size: 0.65rem;
-        font-weight: 700;
-        text-transform: uppercase;
-        padding: 4px 8px;
-        border-radius: 9999px;
-        color: var(--accent);
-        background: var(--bg-soft);
-        white-space: nowrap;
-        margin-left: 10px;
-        letter-spacing: 0.5px;
-    }
-
-    .quest-details {
-        margin-bottom: 1.5rem;
-    }
-
-    .detail-row {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        font-size: 0.85rem;
-        color: #a1a1aa; /* Zinc-400 */
-        margin-bottom: 0.4rem;
-    }
-
-    .detail-row svg { width: 14px; height: 14px; opacity: 0.7; }
-
-    /* --- Minimal Button --- */
-    .btn-action {
-        width: 100%;
-        padding: 0.75rem;
-        background: transparent;
-        border: 1px solid #3f3f46;
-        color: #e4e4e7;
-        font-size: 0.85rem;
-        font-weight: 500;
-        text-align: center;
-        border-radius: 6px;
-        text-decoration: none;
-        transition: all 0.2s;
-    }
-
-    .btn-action:hover {
-        background: #27272a;
-        border-color: #52525b;
-        color: #fff;
-    }
-</style>
-
 {% if jobs %}
-    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem;">
-        <h3 style="margin: 0; font-size: 1.25rem; font-weight: 600; color: #fff;">
-            Results
-        </h3>
-        <span style="font-size: 0.85rem; color: #71717a;">{{ jobs|length }} vacancies found</span>
+    <div style="display: flex; justify-content: space-between; margin-bottom: 1rem; border-bottom: 1px solid #334155; padding-bottom: 10px;">
+        <span style="color: #94a3b8;">Status: <strong style="color: #10b981;">Complete</strong></span>
+        <span style="color: #fff;">{{ jobs|length }} jobs extracted</span>
     </div>
 
-    <div class="quest-board">
+    <div class="quest-board" style="display: grid; gap: 1rem; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));">
+        
         {% for job in jobs %}
-            {% set rarity = 'common' %}
-            {% set rank_name = 'Junior' %}
-            
-            {% if 'Sr' in job.title or 'Lead' in job.title or 'Principal' in job.title %}
-                {% set rarity = 'legendary' %}
-                {% set rank_name = 'Senior' %}
-            {% elif 'Mid-Level' in job.title or 'Mid' in job.title or 'Specialist' in job.title %}
-                {% set rarity = 'epic' %}
-                {% set rank_name = 'Mid-Level' %}
-            {% elif 'Jr' in job.title or 'Junior' in job.title or 'Intern' in job.title %}
-                {% set rarity = 'rare' %}
-                {% set rank_name = 'Junior' %}
-            {% endif %}
-
-            <div class="quest-card rank-{{ rarity }}">
+            <div class="job-card" style="background: #1e293b; border: 1px solid #334155; padding: 1.25rem; border-radius: 8px; display: flex; flex-direction: column; justify-content: space-between;">
                 
-                <div class="card-header">
-                    <h4 class="quest-title">{{ job.title }}</h4>
-                    <span class="rank-badge">{{ rank_name }}</span>
+                <div>
+                    <h5 style="margin: 0 0 0.5rem 0; color: #f1f5f9; font-size: 1.1rem;">{{ job.title }}</h5>
+                    
+                    <span style="background: rgba(148, 163, 184, 0.2); color: #cbd5e1; padding: 2px 8px; border-radius: 4px; font-size: 0.75rem; text-transform: uppercase;">
+                        {{ job.sector }}
+                    </span>
                 </div>
 
-                <div class="quest-details">
-                    <div class="detail-row">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path></svg>
-                        {{ job.company }}
+                <div style="margin-top: 1rem; font-size: 0.85rem; color: #94a3b8;">
+                    
+                    <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 4px;">
+                        {% if job.remote %}
+                            <span style="color: #10b981;">●</span> Remote / Brazil
+                        {% else %}
+                            <span style="color: #f59e0b;">●</span> On-site / Office
+                        {% endif %}
                     </div>
-                    <div class="detail-row">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
-                        Remote / Hybrid
+
+                    <div style="display: flex; align-items: center; gap: 6px;">
+                        <span>📅</span> Posted: 
+                        {% if job.posted_at is string %}
+                            {{ job.posted_at }}
+                        {% else %}
+                            {{ job.posted_at.strftime('%d/%m/%Y') }}
+                        {% endif %}
                     </div>
                 </div>
 
-                <a href="{{ job.link }}" target="_blank" class="btn-action">
-                    Apply Now
+                <a href="https://jornada.stone.com.br{{ job.link }}" target="_blank" style="margin-top: 1rem; display: block; text-align: center; background: transparent; border: 1px solid #475569; padding: 0.5rem; color: #e2e8f0; text-decoration: none; border-radius: 6px; transition: 0.2s;">
+                    View Application
                 </a>
             </div>
         {% endfor %}
+        
     </div>
-
 {% else %}
-    <div style="text-align: center; padding: 4rem; background: #18181b; border-radius: 12px; border: 1px dashed #3f3f46;">
-        <h4 style="color: #e4e4e7; margin-bottom: 0.5rem;">No active quests</h4>
-        <p style="color: #71717a; font-size: 0.9rem;">Try adjusting your search criteria.</p>
+    <div style="text-align: center; padding: 2rem; color: #64748b;">
+        No jobs found for the selected teams.
     </div>
 {% endif %}
