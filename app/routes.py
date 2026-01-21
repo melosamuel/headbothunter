@@ -1,7 +1,8 @@
 import json
 from datetime import datetime
 from flask import Blueprint, render_template, request
-from app import db, redis_client
+from app.extensions import db, redis_client
+from app.models import BlockedJob
 from app.services.scraper_service import StoneJobs
 from config import CACHE_KEY_JOBS, CACHE_TTL
 
@@ -59,6 +60,17 @@ def run_scraper():
         redis_client.setex(cache_key, CACHE_TTL, json.dumps(payload, default=str))
 
     if jobs_data:
+        blocked_entries = BlockedJob.query.with_entities(
+            BlockedJob.title,
+            BlockedJob.posted_at
+        ).all()
+        blocked_set = set(blocked_entries)
+
+        jobs_data = [
+            j for j in jobs_data
+            if (j['title'], j['posted_at']) not in blocked_set
+        ]
+
         jobs_data.sort(key=lambda x: x['posted_at'], reverse=True)
 
     return render_template(
@@ -67,3 +79,17 @@ def run_scraper():
         from_cache=from_cache,
         last_updated=last_updated
     )
+
+@main_bp.route('/block-job', methods=['POST'])
+def block_job():
+    title = request.form.get('title')
+    posted_at = request.form.get('posted_at')
+
+    if title and posted_at:
+        new_blocked = BlockedJob(title=title, posted_at=posted_at)
+        db.session.add(new_blocked)
+        db.session.commit()
+
+        redis_client.delete(CACHE_KEY_JOBS)
+
+    return ""

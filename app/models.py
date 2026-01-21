@@ -1,5 +1,5 @@
 from datetime import datetime
-from app import db
+from app.extensions import db
 
 class Job(db.Model):
     __tablename__ = 'jobs'
@@ -27,3 +27,12 @@ class Job(db.Model):
             "remote": self.remote,
             "posted_at": self.posted_at
         }
+
+class BlockedJob(db.Model):
+    __tablename__ = "blocked_jobs"
+
+    id = db.Column(db.Integer, primary_key=True)
+    title = db.Column(db.String(200), nullable=False)
+    posted_at = db.Column(db.String(50), nullable=False)
+
+    __table_args__ = (db.Index('idx_title_date', 'title', 'posted_at'),)

@@ -1,9 +1,5 @@
 from flask import Flask
-from flask_sqlalchemy import SQLAlchemy
-import redis
-
-db = SQLAlchemy()
-redis_client = redis.Redis(host='localhost', port=6379, db=0, decode_responses=True)
+from app.extensions import db
 
 def create_app():
     app = Flask(__name__)
@@ -13,7 +9,7 @@ def create_app():
 
     db.init_app(app)
 
-    from app.routes import main_bp
+    from app.routes import main_bp # pylint: disable=import-outside-toplevel
     app.register_blueprint(main_bp)
 
     with app.app_context():
