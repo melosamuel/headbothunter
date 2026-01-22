@@ -36,3 +36,16 @@ class BlockedJob(db.Model):
     posted_at = db.Column(db.String(50), nullable=False)
 
     __table_args__ = (db.Index('idx_title_date', 'title', 'posted_at'),)
+
+class Project(db.Model):
+    __tablename__ = "projects"
+
+    id = db.Column(db.Integer, primary_key=True)
+    title = db.Column(db.String(100), nullable=False)
+    link = db.Column(db.String(200), nullable=False)
+    badge = db.Column(db.String(50), nullable=True)
+    created_at = db.Column(db.DateTime, default=datetime.now)
+    proposals = db.Column(db.Integer, nullable=False)
+    description = db.Column(db.String(400), nullable=False)
+    budget = db.Column(db.String(50), nullable=False)
+    status = db.Column(db.String(20), default="new")
