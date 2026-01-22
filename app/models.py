@@ -17,6 +17,7 @@ class Job(db.Model):
 
     found_at = db.Column(db.DateTime, default=datetime.now)
     posted_at = db.Column(db.String(50))
+    status = db.Column(db.String(20), default="new")
 
     def to_dict(self):
         return {
@@ -25,17 +26,9 @@ class Job(db.Model):
             "link": self.link,
             "sector": self.sector,
             "remote": self.remote,
-            "posted_at": self.posted_at
+            "posted_at": self.posted_at,
+            "status": self.status
         }
-
-class BlockedJob(db.Model):
-    __tablename__ = "blocked_jobs"
-
-    id = db.Column(db.Integer, primary_key=True)
-    title = db.Column(db.String(200), nullable=False)
-    posted_at = db.Column(db.String(50), nullable=False)
-
-    __table_args__ = (db.Index('idx_title_date', 'title', 'posted_at'),)
 
 class Project(db.Model):
     __tablename__ = "projects"
