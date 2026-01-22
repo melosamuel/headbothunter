@@ -42,3 +42,15 @@ class Project(db.Model):
     description = db.Column(db.String(400), nullable=False)
     budget = db.Column(db.String(50), nullable=False)
     status = db.Column(db.String(20), default="new")
+
+    def to_dict(self):
+        return {
+            "title": self.title,
+            "link": self.link,
+            "badge": self.badge,
+            "description": self.description,
+            "proposals": self.proposals,
+            "budget": self.budget,
+            "status": self.status,
+            "created_at": self.created_at
+        }
