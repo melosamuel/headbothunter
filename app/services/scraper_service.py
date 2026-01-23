@@ -60,7 +60,7 @@ class StoneJobs:
             posted_date_text = details_wrapper[2].find("span").get_text(strip=True)
             match = re.search(r'\d+', posted_date_text)
             posted_date = int(match.group()) if match else None
-            posted_at = datetime.now() - timedelta(days=posted_date) if posted_date else "N/A"
+            posted_at = datetime.now() - timedelta(days=posted_date) if posted_date is not None else "N/A"
 
             jobs[link] = {
                 "title": title,
