@@ -19,7 +19,7 @@ def run_scraper(): # pylint: disable=too-many-locals,too-many-branches,too-many-
     jobs_data = []
     from_cache = False
     from_db = False
-    last_updated = "Recente"
+    last_updated = "Recently"
 
     if not force_refresh:
         cached_result = redis_client.get(CACHE_KEY_JOBS)
@@ -56,7 +56,7 @@ def run_scraper(): # pylint: disable=too-many-locals,too-many-branches,too-many-
         clean_display_list = []
 
         for link, job_info in found_jobs_dict.items():
-            status = existing_map.get(status)
+            status = existing_map.get(link)
 
             if status == 'blocked':
                 continue
@@ -70,7 +70,7 @@ def run_scraper(): # pylint: disable=too-many-locals,too-many-branches,too-many-
                 "sector": job_info['sector'],
                 "remote": job_info['remote'],
                 "posted_at": formatted_date,
-                "status": "new"
+                "status": status if status else "new"
             }
 
             if status is None:
@@ -84,9 +84,8 @@ def run_scraper(): # pylint: disable=too-many-locals,too-many-branches,too-many-
                     status="new"
                 )
                 db.session.add(new_db_job)
-                clean_display_list.append(job)
-            else:
-                clean_display_list.append(job)
+
+            clean_display_list.append(job)
         try:
             db.session.commit()
             jobs_data = clean_display_list
@@ -121,4 +120,15 @@ def run_scraper(): # pylint: disable=too-many-locals,too-many-branches,too-many-
 
 @main_bp.route('/block-job', methods=['POST'])
 def block_job():
+    job_link = request.form.get('link')
+
+    if job_link:
+        job = Job.query.filter_by(link=job_link).first()
+
+        if job:
+            job.status = 'blocked'
+            db.session.commit()
+
+            redis_client.delete(CACHE_KEY_JOBS)
+
     return ""

@@ -60,8 +60,7 @@
         {% for job in jobs %}
             <div class="job-card" style="background: #1e293b; border: 1px solid #334155; padding: 1.25rem; border-radius: 8px; display: flex; flex-direction: column; justify-content: space-between;">
                 <form hx-post="/block-job" hx-swap="delete" hx-target="closest .job-card">
-                    <input type="hidden" name="title" value="{{ job.title }}">
-                    <input type="hidden" name="posted_at" value="{{ job.posted_at }}">
+                    <input type="hidden" name="link" value="{{ job.link }}">
 
                     <button type="submit" class="btn-trash" title="Ocultar esta vaga">
                         X
