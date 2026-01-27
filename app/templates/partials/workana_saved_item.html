@@ -1,0 +1,17 @@
+<div {% if oob %}hx-swap-oob="beforeend:#saved-list"{% endif %} 
+    class="bg-slate-700/50 p-3 rounded-lg border border-slate-600 hover:border-slate-500 transition-colors group relative"
+>
+    <div class="font-bold text-sm text-slate-200 mb-1 truncate">{{ project.title }}</div>
+    
+    <div class="flex justify-between items-center text-xs text-slate-400">
+        <span class="text-emerald-400 font-mono">{{ project.budget }}</span>
+        <a href="https://www.workana.com{{ project.link }}" target="_blank" class="hover:text-white">Opener ↗</a>
+    </div>
+
+    <button hx-post="/workana/interact/{{ project.id }}/block" 
+            hx-target="closest div" 
+            hx-swap="delete"
+            class="absolute -top-2 -right-2 text-red-500 opacity-0 group-hover:opacity-100 hover:bg-red-500 hover:text-white rounded-[50%] px-2">
+        ×
+    </button>
+</div>
