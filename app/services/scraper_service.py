@@ -72,7 +72,7 @@ class StoneJobs:
 
         return jobs
 
-class WorkanaJobs:
+class WorkanaProjects:
     page: any
 
     def start(self):
