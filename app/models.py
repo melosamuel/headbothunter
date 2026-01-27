@@ -41,6 +41,7 @@ class Project(db.Model):
     proposals = db.Column(db.Integer, nullable=False)
     description = db.Column(db.String(400), nullable=False)
     budget = db.Column(db.String(50), nullable=False)
+    published_date = db.Column(db.String(50), nullable=False)
     status = db.Column(db.String(20), default="new")
 
     def to_dict(self):
@@ -52,5 +53,6 @@ class Project(db.Model):
             "proposals": self.proposals,
             "budget": self.budget,
             "status": self.status,
+            "published_date": self.published_date,
             "created_at": self.created_at
         }
