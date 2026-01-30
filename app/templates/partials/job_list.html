@@ -1,109 +1,385 @@
 <style>
     .job-card {
-        position: relative; 
+        animation: cardSlideIn 0.4s ease-out backwards;
+        transition: all 0.3s ease;
     }
-
-    .btn-trash {
-        position: absolute;
-        top: 10px;
-        right: 10px;
-        background: rgba(0, 0, 0, 0.4);
-        border: none;
-        color: #ef4444;
-        width: 32px;
-        height: 32px;
-        border-radius: 10%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        cursor: pointer;
-        transition: all 0.2s;
-        opacity: 0.7;
+    
+    .job-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+        border-color: rgba(99, 102, 241, 0.3);
     }
-
-    .btn-trash:hover {
-        background: #ef4444;
-        color: white;
-        opacity: 1;
+    
+    @keyframes cardSlideIn {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    
+    .job-card:nth-child(1) { animation-delay: 0.05s; }
+    .job-card:nth-child(2) { animation-delay: 0.1s; }
+    .job-card:nth-child(3) { animation-delay: 0.15s; }
+    .job-card:nth-child(4) { animation-delay: 0.2s; }
+    .job-card:nth-child(5) { animation-delay: 0.25s; }
+    .job-card:nth-child(6) { animation-delay: 0.3s; }
+    .job-card:nth-child(7) { animation-delay: 0.35s; }
+    .job-card:nth-child(8) { animation-delay: 0.4s; }
+    
+    .action-btn {
+        transition: all 0.2s ease;
+    }
+    
+    .action-btn:hover {
         transform: scale(1.1);
+    }
+    
+    .btn-block:hover {
+        background: rgba(239, 68, 68, 0.2);
+        color: #f87171;
+    }
+    
+    .btn-apply:hover {
+        background: rgba(16, 185, 129, 0.2);
+        color: #34d399;
+    }
+    
+    .status-badge {
+        animation: pulse 2s ease-in-out infinite;
+    }
+    
+    @keyframes pulse {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.7; }
+    }
+    
+    .collapsible-content {
+        max-height: 0;
+        overflow: hidden;
+        transition: max-height 0.4s ease-out, opacity 0.3s ease;
+        opacity: 0;
+    }
+    
+    .collapsible-content.open {
+        max-height: 2000px;
+        opacity: 1;
+    }
+    
+    .chevron-icon {
+        transition: transform 0.3s ease;
+    }
+    
+    .chevron-icon.rotated {
+        transform: rotate(180deg);
     }
 </style>
 
-{% if jobs %}
-    <div style="background: #1e293b; padding: 1rem; border-radius: 8px; margin-bottom: 1.5rem; border: 1px solid #334155; display: flex; justify-content: space-between; align-items: center; gap: 0 6rem">
-        <div>
-            {% if from_cache %}
-                <span style="color: #f59e0b; font-weight: bold;">⚡ Cached Results</span>
-            {% else %}
-                <span style="color: #10b981; font-weight: bold;">🐢 Fresh Results</span>
-            {% endif %}
-            
-            <div style="font-size: 0.8rem; color: #94a3b8; margin-top: 4px;">
-                Last verification: {{ last_updated }} </br>
-                ({{ jobs|length }} positions)
+<!-- Results Header -->
+<div class="glass-card rounded-xl p-4 mb-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+    <div class="flex items-center gap-3">
+        {% if from_cache %}
+            <div class="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-amber-500/10 border border-amber-500/20">
+                <span class="w-2 h-2 rounded-full bg-amber-400 status-badge"></span>
+                <span class="text-amber-400 font-semibold text-sm">Cache</span>
+            </div>
+        {% else %}
+            <div class="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-emerald-500/10 border border-emerald-500/20">
+                <span class="w-2 h-2 rounded-full bg-emerald-400 status-badge"></span>
+                <span class="text-emerald-400 font-semibold text-sm">Atualizado</span>
+            </div>
+        {% endif %}
+        
+        <div class="text-gray-400 text-sm">
+            <span class="text-gray-300 font-medium">{{ jobs|selectattr('status', 'equalto', 'new')|list|length }}</span> novas vagas
+            <span class="hidden sm:inline">&#8226; {{ last_updated }}</span>
+        </div>
+    </div>
+    
+    <button 
+        hx-post="/run-scraper?force=true" 
+        hx-target="#results-area"
+        hx-indicator="#search-form"
+        class="btn-secondary px-4 py-2 rounded-lg text-gray-300 text-sm font-medium flex items-center gap-2 hover:bg-indigo-500/20 transition-all"
+    >
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+        </svg>
+        Forcar Atualizacao
+    </button>
+</div>
+
+<!-- NEW JOBS SECTION -->
+{% set new_jobs = jobs|selectattr('status', 'equalto', 'new')|list %}
+{% if new_jobs %}
+<section class="mb-8">
+    <button onclick="toggleSection('new-jobs')" class="section-header w-full flex items-center justify-between p-4 rounded-xl glass-card mb-4">
+        <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-lg bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center">
+                <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
+                </svg>
+            </div>
+            <div class="text-left">
+                <h2 class="text-lg font-semibold text-white">Vagas Disponiveis</h2>
+                <p class="text-gray-400 text-sm">{{ new_jobs|length }} oportunidades</p>
             </div>
         </div>
-
-        <button 
-            hx-post="/run-scraper?force=true" 
-            hx-target="#results-area"
-            hx-indicator="#loading"
-            hx-include="[name='teams']" 
-            style="background: transparent; border: 1px solid #475569; color: #fff; padding: 6px 12px; font-size: 0.8rem; cursor: pointer; border-radius: 4px; width: 40%; margin: 0 auto;"
-        >
-            ↻ Force Refresh
-        </button>
-    </div>
-
-    <div class="quest-board" style="display: grid; gap: 1rem; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));">
-        
-        {% for job in jobs %}
-            <div class="job-card" style="background: #1e293b; border: 1px solid #334155; padding: 1.25rem; border-radius: 8px; display: flex; flex-direction: column; justify-content: space-between;">
-                <form hx-post="/block-job" hx-swap="delete" hx-target="closest .job-card">
-                    <input type="hidden" name="link" value="{{ job.link }}">
-
-                    <button type="submit" class="btn-trash" title="Ocultar esta vaga">
-                        X
-                    </button>
-                </form>
-                
-                <div>
-                    <h5 style="margin: 0 0 0.5rem 0; color: #f1f5f9; font-size: 1.1rem;">{{ job.title }}</h5>
-                    
-                    <span style="background: rgba(148, 163, 184, 0.2); color: #cbd5e1; padding: 2px 8px; border-radius: 4px; font-size: 0.75rem; text-transform: uppercase;">
-                        {{ job.sector }}
-                    </span>
-                </div>
-
-                <div style="margin-top: 1rem; font-size: 0.85rem; color: #94a3b8;">
-                    
-                    <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 4px;">
-                        {% if job.remote %}
-                            <span style="color: #10b981;">●</span> Remote   
-                        {% else %}
-                            <span style="color: #f59e0b;">●</span> On-site / Office
-                        {% endif %}
+        <svg id="chevron-new-jobs" class="chevron-icon rotated w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+        </svg>
+    </button>
+    
+    <div id="new-jobs" class="collapsible-content open">
+        <div class="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 p-1">
+            {% for job in new_jobs %}
+                <article class="job-card glass-card rounded-xl p-5 flex flex-col border border-transparent">
+                    <div class="flex items-start justify-between gap-3 mb-4">
+                        <div class="flex-1 min-w-0">
+                            <h3 class="text-white font-semibold text-base leading-tight mb-2 line-clamp-2">
+                                {{ job.title }}
+                            </h3>
+                            <span class="inline-flex items-center px-2.5 py-1 rounded-md bg-slate-700/50 text-slate-300 text-xs font-medium uppercase tracking-wide">
+                                {{ job.sector }}
+                            </span>
+                        </div>
+                        
+                        <div class="flex gap-1.5 flex-shrink-0">
+                            <form hx-post="/mark-applied" hx-swap="delete" hx-target="closest .job-card">
+                                <input type="hidden" name="link" value="{{ job.link }}">
+                                <button type="submit" class="action-btn btn-apply w-8 h-8 rounded-lg bg-slate-700/50 text-emerald-400/70 flex items-center justify-center" title="Marcar como aplicado">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                    </svg>
+                                </button>
+                            </form>
+                            
+                            <form hx-post="/block-job" hx-swap="delete" hx-target="closest .job-card">
+                                <input type="hidden" name="link" value="{{ job.link }}">
+                                <button type="submit" class="action-btn btn-block w-8 h-8 rounded-lg bg-slate-700/50 text-red-400/70 flex items-center justify-center" title="Bloquear vaga">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                                    </svg>
+                                </button>
+                            </form>
+                        </div>
                     </div>
-
-                    <div style="display: flex; align-items: center; gap: 6px;">
-                        <span>📅</span> Posted: 
-                        {% if job.posted_at is string %}
-                            {{ job.posted_at }}
-                        {% else %}
-                            {{ job.posted_at.strftime('%d/%m/%Y') }}
-                        {% endif %}
+                    
+                    <div class="flex-1 space-y-2 mb-4">
+                        <div class="flex items-center gap-2 text-sm">
+                            {% if job.remote %}
+                                <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+                                <span class="text-emerald-400">Remoto</span>
+                            {% else %}
+                                <span class="w-1.5 h-1.5 rounded-full bg-amber-400"></span>
+                                <span class="text-amber-400">Presencial</span>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="flex items-center gap-2 text-sm text-gray-400">
+                            <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                            </svg>
+                            <span>{{ job.posted_at }}</span>
+                        </div>
                     </div>
-                </div>
-
-                <a href="https://jornada.stone.com.br{{ job.link }}" target="_blank" style="margin-top: 1rem; display: block; text-align: center; background: transparent; border: 1px solid #475569; padding: 0.5rem; color: #e2e8f0; text-decoration: none; border-radius: 6px; transition: 0.2s;">
-                    View Application
-                </a>
-            </div>
-        {% endfor %}
-        
+                    
+                    <a 
+                        href="https://jornada.stone.com.br{{ job.link }}" 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        class="block w-full text-center py-2.5 rounded-lg bg-indigo-500/10 border border-indigo-500/20 text-indigo-300 font-medium text-sm hover:bg-indigo-500/20 hover:border-indigo-500/30 transition-all"
+                    >
+                        Ver Vaga
+                    </a>
+                </article>
+            {% endfor %}
+        </div>
     </div>
-{% else %}
-    <div style="text-align: center; padding: 2rem; color: #64748b;">
-        No jobs found.
-    </div>
+</section>
 {% endif %}
+
+<!-- APPLIED JOBS SECTION -->
+{% set applied_jobs = jobs|selectattr('status', 'equalto', 'applied')|list %}
+{% if applied_jobs %}
+<section class="mb-8">
+    <button onclick="toggleSection('applied-jobs')" class="section-header w-full flex items-center justify-between p-4 rounded-xl glass-card mb-4">
+        <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-lg bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center">
+                <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+            </div>
+            <div class="text-left">
+                <h2 class="text-lg font-semibold text-white">Aplicados</h2>
+                <p class="text-gray-400 text-sm">{{ applied_jobs|length }} candidaturas</p>
+            </div>
+        </div>
+        <svg id="chevron-applied-jobs" class="chevron-icon w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+        </svg>
+    </button>
+    
+    <div id="applied-jobs" class="collapsible-content">
+        <div class="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 p-1">
+            {% for job in applied_jobs %}
+                <article class="job-card glass-card rounded-xl p-5 flex flex-col border border-emerald-500/20">
+                    <div class="flex items-start justify-between gap-3 mb-4">
+                        <div class="flex-1 min-w-0">
+                            <div class="flex items-center gap-2 mb-2">
+                                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 text-xs font-medium">
+                                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                    </svg>
+                                    Aplicado
+                                </span>
+                            </div>
+                            <h3 class="text-white font-semibold text-base leading-tight mb-2 line-clamp-2">
+                                {{ job.title }}
+                            </h3>
+                            <span class="inline-flex items-center px-2.5 py-1 rounded-md bg-slate-700/50 text-slate-300 text-xs font-medium uppercase tracking-wide">
+                                {{ job.sector }}
+                            </span>
+                        </div>
+                    </div>
+                    
+                    <div class="flex-1 space-y-2 mb-4">
+                        <div class="flex items-center gap-2 text-sm">
+                            {% if job.remote %}
+                                <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+                                <span class="text-emerald-400">Remoto</span>
+                            {% else %}
+                                <span class="w-1.5 h-1.5 rounded-full bg-amber-400"></span>
+                                <span class="text-amber-400">Presencial</span>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="flex items-center gap-2 text-sm text-gray-400">
+                            <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                            </svg>
+                            <span>{{ job.posted_at }}</span>
+                        </div>
+                    </div>
+                    
+                    <a 
+                        href="https://jornada.stone.com.br{{ job.link }}" 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        class="block w-full text-center py-2.5 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-300 font-medium text-sm hover:bg-emerald-500/20 hover:border-emerald-500/30 transition-all"
+                    >
+                        Ver Vaga
+                    </a>
+                </article>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+{% endif %}
+
+<!-- BLOCKED JOBS SECTION -->
+{% set blocked_jobs = jobs|selectattr('status', 'equalto', 'blocked')|list %}
+{% if blocked_jobs %}
+<section class="mb-8">
+    <button onclick="toggleSection('blocked-jobs')" class="section-header w-full flex items-center justify-between p-4 rounded-xl glass-card mb-4">
+        <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-lg bg-gradient-to-br from-slate-500 to-slate-600 flex items-center justify-center">
+                <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"></path>
+                </svg>
+            </div>
+            <div class="text-left">
+                <h2 class="text-lg font-semibold text-white">Bloqueados</h2>
+                <p class="text-gray-400 text-sm">{{ blocked_jobs|length }} vagas ocultas</p>
+            </div>
+        </div>
+        <svg id="chevron-blocked-jobs" class="chevron-icon w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+        </svg>
+    </button>
+    
+    <div id="blocked-jobs" class="collapsible-content">
+        <div class="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 p-1">
+            {% for job in blocked_jobs %}
+                <article class="job-card glass-card rounded-xl p-5 flex flex-col border border-transparent opacity-60">
+                    <div class="flex items-start justify-between gap-3 mb-4">
+                        <div class="flex-1 min-w-0">
+                            <h3 class="text-white font-semibold text-base leading-tight mb-2 line-clamp-2">
+                                {{ job.title }}
+                            </h3>
+                            <span class="inline-flex items-center px-2.5 py-1 rounded-md bg-slate-700/50 text-slate-300 text-xs font-medium uppercase tracking-wide">
+                                {{ job.sector }}
+                            </span>
+                        </div>
+                        
+                        <div class="flex gap-1.5 flex-shrink-0">
+                            <form hx-post="/mark-applied" hx-swap="delete" hx-target="closest .job-card">
+                                <input type="hidden" name="link" value="{{ job.link }}">
+                                <button type="submit" class="action-btn btn-apply w-8 h-8 rounded-lg bg-slate-700/50 text-emerald-400/70 flex items-center justify-center" title="Marcar como aplicado">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                    </svg>
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                    
+                    <div class="flex-1 space-y-2 mb-4">
+                        <div class="flex items-center gap-2 text-sm">
+                            {% if job.remote %}
+                                <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+                                <span class="text-emerald-400">Remoto</span>
+                            {% else %}
+                                <span class="w-1.5 h-1.5 rounded-full bg-amber-400"></span>
+                                <span class="text-amber-400">Presencial</span>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="flex items-center gap-2 text-sm text-gray-400">
+                            <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                            </svg>
+                            <span>{{ job.posted_at }}</span>
+                        </div>
+                    </div>
+                    
+                    <a 
+                        href="https://jornada.stone.com.br{{ job.link }}" 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        class="block w-full text-center py-2.5 rounded-lg bg-slate-500/10 border border-slate-500/20 text-slate-400 font-medium text-sm hover:bg-slate-500/20 hover:border-slate-500/30 transition-all"
+                    >
+                        Ver Vaga
+                    </a>
+                </article>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+{% endif %}
+
+<!-- Empty State -->
+{% if not jobs %}
+<div class="glass-card rounded-2xl p-12 text-center">
+    <div class="w-20 h-20 mx-auto mb-6 rounded-2xl bg-gradient-to-br from-slate-700/50 to-slate-600/50 flex items-center justify-center">
+        <svg class="w-10 h-10 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+        </svg>
+    </div>
+    <h3 class="text-xl font-semibold text-gray-300 mb-2">Nenhuma vaga encontrada</h3>
+    <p class="text-gray-500">Tente novamente mais tarde ou ajuste seus filtros</p>
+</div>
+{% endif %}
+
+<script>
+    function toggleSection(sectionId) {
+        const content = document.getElementById(sectionId);
+        const chevron = document.getElementById('chevron-' + sectionId);
+        
+        content.classList.toggle('open');
+        chevron.classList.toggle('rotated');
+    }
+</script>

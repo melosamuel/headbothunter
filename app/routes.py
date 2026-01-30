@@ -1,6 +1,6 @@
 import json
 from datetime import datetime
-from flask import Blueprint, render_template, request
+from flask import Blueprint, render_template, request, redirect, url_for
 from app.extensions import db, redis_client
 from app.models import Job, Project
 from app.services.scraper_service import StoneJobs, WorkanaProjects
@@ -13,8 +13,8 @@ def render_next_card():
 
     if next_project:
         return render_template('partials/workana_card.html', project=next_project)
-    else:
-        return ""
+
+    return ""
 
 @main_bp.route("/")
 def index():
@@ -41,7 +41,7 @@ def run_scraper(): # pylint: disable=too-many-locals,too-many-branches,too-many-
                 pass
 
     if not jobs_data and not force_refresh:
-        saved_jobs = Job.query.filter(Job.status != "blocked").order_by(Job.found_at.desc()).all()
+        saved_jobs = Job.query.order_by(Job.found_at.desc()).all()
 
         if saved_jobs:
             jobs_data = [j.to_dict() for j in saved_jobs]
@@ -65,9 +65,6 @@ def run_scraper(): # pylint: disable=too-many-locals,too-many-branches,too-many-
 
         for link, job_info in found_jobs_dict.items():
             status = existing_map.get(link)
-
-            if status == 'blocked':
-                continue
 
             formatted_date = job_info['posted_at'].strftime('%d/%m/%Y')
 
@@ -141,10 +138,25 @@ def block_job():
 
     return ""
 
+@main_bp.route('/mark-applied', methods=['POST'])
+def mark_applied():
+    job_link = request.form.get('link')
+
+    if job_link:
+        job = Job.query.filter_by(link=job_link).first()
+
+        if job:
+            job.status = 'applied'
+            db.session.commit()
+
+            redis_client.delete(CACHE_KEY_JOBS)
+
+    return redirect(url_for('main.index'))
+
 @main_bp.route('/workana')
 def workana_hunt():
     current_project = Project.query.filter_by(status='new').first()
-    saved_projects = Project.query.filter_by(status='saved').order_by(Project.created_at.desc()).all()
+    saved_projects = Project.query.filter_by(status='saved').order_by(Project.created_at.desc()).all() # pylint: disable=line-too-long
 
     return render_template(
         'workana.html',
@@ -153,7 +165,7 @@ def workana_hunt():
     )
 
 @main_bp.route('/workana/refresh', methods=['POST'])
-def workana_refresh():
+def workana_refresh(): # pylint: disable=too-many-locals
     refresh = request.args.get('force') == 'true'
 
     projects_data = []
@@ -170,7 +182,7 @@ def workana_refresh():
                 pass
 
     if not projects_data and not refresh:
-        saved_projects = Project.query.filter(Project.status != "blocked").order_by(Project.created_at.desc()).all()
+        saved_projects = Project.query.filter(Project.status != "blocked").order_by(Project.created_at.desc()).all() # pylint: disable=line-too-long
 
         if saved_projects:
             projects_data = [p.to_dict() for p in saved_projects]
@@ -254,6 +266,10 @@ def block_project(project_id, action):
 
     saved_item_html = ""
     if action == "save":
-        saved_item_html = render_template('partials/workana_saved_item.html', project=project, oob=True)
+        saved_item_html = render_template(
+            'partials/workana_saved_item.html',
+            project=project,
+            oob=True
+        )
 
     return f"{render_next_card()}{saved_item_html}"
